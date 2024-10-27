@@ -1,3 +1,4 @@
+
 // Copyright (c) FIRST and other WPILib contributors.
 // Open Source Software; you can modify and/or share it under the terms of
 // the WPILib BSD license file in the root directory of this project.
@@ -11,9 +12,9 @@ import frc.robot.commands.ArcadeDrive;
 import frc.robot.commands.AutonomousDistance;
 import frc.robot.commands.AutonomousTime;
 import frc.robot.commands.DriveDistance;
-//import frc.robot.commands.DriveForwardAndTurn;
 import frc.robot.commands.TurnDegrees;
 import frc.robot.subsystems.Drivetrain;
+import frc.robot.subsystems.LEDs;
 import frc.robot.subsystems.OnBoardIO;
 import frc.robot.subsystems.OnBoardIO.ChannelMode;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
@@ -32,10 +33,12 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 public class RobotContainer {
   // The robot's subsystems and commands are defined here...
   private final Drivetrain m_drivetrain = new Drivetrain();
-  private final OnBoardIO m_onboardIO = new OnBoardIO(ChannelMode.INPUT, ChannelMode.INPUT);
+  
+  private final LEDs m_leds = new LEDs();
 
   // Assumes a gamepad plugged into channel 0
   private final Joystick m_controller = new Joystick(0);
+
 
   // Create SmartDashboard chooser for autonomous routines
   private final SendableChooser<Command> m_chooser = new SendableChooser<>();
@@ -68,15 +71,16 @@ public class RobotContainer {
     // is scheduled over it.
     m_drivetrain.setDefaultCommand(getArcadeDriveCommand());
 
-    // Buttons
-    Trigger onboardButtonA = new Trigger(m_onboardIO::getButtonAPressed);
-    Trigger onboardButtonB = new Trigger(m_onboardIO::getButtonBPressed);
-    Trigger onboardButtonC = new Trigger(m_onboardIO::getButtonCPressed);
+    // Buttons to control LEDs
 
-    // Example of how to use the onboard IO
-    /*
-    onboardButtonA.onTrue(Commands.sequence(Commands.waitSeconds(3), new DriveDistance(.5, 6, m_drivetrain)));
-    */
+    // Z --> Green
+    // X --> Red
+    // C --> Yellow
+    // V --> All
+    Trigger button1 = new Trigger(()->m_controller.getRawButton(1));
+    Trigger button2 = new Trigger(()->m_controller.getRawButton(2));
+    Trigger button3 = new Trigger(()->m_controller.getRawButton(3));
+    Trigger button4 = new Trigger(()->m_controller.getRawButton(4));
     
     /*
      * Useful pre-written commands:
@@ -87,10 +91,44 @@ public class RobotContainer {
      *  Commands.either(Command onTrue, Command onFalse, BooleanSupplier selector) - Returns one of two commands based on a boolean
      */
 
+    //Implement LEDs
+    button1.onTrue(
+      Commands.either(
+        Commands.runOnce(m_leds::turnOffGreen),
+        Commands.runOnce(m_leds::turnOnGreen),
+        m_leds::getGreenStatus));
+    button2.onTrue(
+      Commands.either(
+        Commands.runOnce(m_leds::turnOffRed),
+        Commands.runOnce(m_leds::turnOnRed),
+        m_leds::getRedStatus));
+    button3.onTrue(
+      Commands.either(
+        Commands.runOnce(()->{m_leds.turnOffYellow();}),
+          Commands.runOnce(()->{m_leds.turnOnYellow();}),
+          ()->{return m_leds.getYellowStatus();}));
+    button4.onTrue(toggleLEDs());
+
     // Setup SmartDashboard options
     m_chooser.setDefaultOption("Example Auto Command", getExampleAutoCommand());
     m_chooser.addOption("Custom Auto Command", getCustomAutoCommand());
     SmartDashboard.putData(m_chooser);
+  }
+
+  private Command toggleLEDs() {
+    return Commands.parallel(
+      Commands.either(
+        Commands.runOnce(m_leds::turnOffGreen),
+        Commands.runOnce(m_leds::turnOnGreen),
+        m_leds::getGreenStatus),
+      Commands.either(
+        Commands.runOnce(m_leds::turnOffRed),
+        Commands.runOnce(m_leds::turnOnRed),
+        m_leds::getRedStatus),
+      Commands.either(
+        Commands.runOnce(m_leds::turnOffYellow),
+        Commands.runOnce(m_leds::turnOnYellow),
+        m_leds::getYellowStatus));
   }
 
   /**
@@ -118,9 +156,7 @@ public class RobotContainer {
    * @return the example command
    */
   public Command getExampleAutoCommand() {
-    return Commands.sequence( 
-      //new DriveForwardAndTurn(50, 90, m_drivetrain)
-    );
+    return null;
   }
 
   public Command getCustomAutoCommand() {
