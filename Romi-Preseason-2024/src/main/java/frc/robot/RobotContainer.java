@@ -14,6 +14,7 @@ import frc.robot.commands.DriveDistance;
 //import frc.robot.commands.DriveForwardAndTurn;
 import frc.robot.commands.TurnDegrees;
 import frc.robot.subsystems.Drivetrain;
+import frc.robot.subsystems.LEDs;
 import frc.robot.subsystems.OnBoardIO;
 import frc.robot.subsystems.OnBoardIO.ChannelMode;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
@@ -33,6 +34,10 @@ public class RobotContainer {
   // The robot's subsystems and commands are defined here...
   private final Drivetrain m_drivetrain = new Drivetrain();
   private final OnBoardIO m_onboardIO = new OnBoardIO(ChannelMode.INPUT, ChannelMode.INPUT);
+
+
+  private final LEDs leds = new LEDs();
+  private final Joystick keyboard = new Joystick(0);
 
   // Assumes a gamepad plugged into channel 0
   private final Joystick m_controller = new Joystick(0);
